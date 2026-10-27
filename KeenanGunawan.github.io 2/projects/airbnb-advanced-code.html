@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cleaned R pipeline for Keenan Gunawan's Airbnb satisfaction and price prediction case study.">
+  <title>R Code: Airbnb Satisfaction &amp; Price Prediction | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Source+Mono+4:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a class="active" href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#outcomes">Outcomes</a>
+    <a href="#preprocessing">Preprocessing</a>
+    <a href="#classification">Classification</a>
+    <a href="#regression">Regression</a>
+    <a href="#evaluation">Evaluation</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="airbnb-advanced-modelling.html">Airbnb Satisfaction &amp; Price Prediction</a><span>/</span><span>R code</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Technical appendix · R</p>
+        <h1>Leakage-safe modelling pipeline</h1>
+        <p class="lead">Selected code from the reproducible workflow. The downloadable script contains the full model comparison, tuning, threshold selection and final metrics.</p>
+        <div class="code-intro"><p>The raw listing workbook is intentionally not published. Run the script with an authorised local copy: <code>Rscript code/airbnb-advanced-modelling.R "/path/to/AirbnbMelbourne.xlsx"</code>.</p></div>
+        <div class="code-toolbar"><p>R · recipes · glmnet · randomForest · xgboost</p><a class="button primary" href="../code/airbnb-advanced-modelling.R" download>Download the .R file</a></div>
+      </header>
+
+      <section class="code-section" id="outcomes">
+        <p class="section-number">01</p>
+        <h2>Define the population and outcomes</h2>
+        <pre><code>data &lt;- raw |&gt;
+  filter(price &lt;= 1000) |&gt;
+  mutate(
+    avg_score = rowMeans(across(all_of(review_columns))),
+    HAS = factor(
+      ifelse(avg_score &gt; 4.9, "Yes", "No"),
+      levels = c("No", "Yes")
+    )
+  )</code></pre>
+        <div class="interpretation"><span>Guardrail</span><p>The seven review components create the classification outcome and are excluded from its predictors. Price is also excluded so the classifier reflects host and listing information rather than the advertised outcome.</p></div>
+      </section>
+
+      <section class="code-section" id="preprocessing">
+        <p class="section-number">02</p>
+        <h2>Fit preprocessing on training data</h2>
+        <pre><code>make_recipe &lt;- function(training_predictors) {
+  recipe(~ ., data = training_predictors) |&gt;
+    step_unknown(all_nominal_predictors(), new_level = "Missing") |&gt;
+    step_novel(all_nominal_predictors(), new_level = "New") |&gt;
+    step_other(all_nominal_predictors(), threshold = 0.01, other = "Rare") |&gt;
+    step_impute_median(all_numeric_predictors()) |&gt;
+    step_dummy(all_nominal_predictors(), one_hot = TRUE) |&gt;
+    step_zv(all_predictors()) |&gt;
+    prep(training = training_predictors, retain = TRUE)
+}</code></pre>
+        <p>The same trained recipe is then applied to validation and test rows. This prevents their category frequencies or medians from influencing model development.</p>
+      </section>
+
+      <section class="code-section" id="classification">
+        <p class="section-number">03</p>
+        <h2>Tune the classifier and threshold separately</h2>
+        <pre><code>class_xgb &lt;- xgb.train(
+  params = list(
+    objective = "binary:logistic", eval_metric = "auc",
+    max_depth = 3, eta = 0.05,
+    subsample = 0.85, colsample_bytree = 0.85
+  ),
+  data = dclass_train,
+  nrounds = 1200,
+  watchlist = list(validation = dclass_validation),
+  early_stopping_rounds = 60,
+  verbose = 0
+)
+
+validation_roc &lt;- roc(
+  y_class_validation, validation_probability,
+  levels = c("No", "Yes"), direction = "&lt;"
+)
+threshold &lt;- coords(
+  validation_roc, "best",
+  best.method = "youden", ret = "threshold"
+)</code></pre>
+        <div class="interpretation"><span>Why it matters</span><p>AUC selects the ranking model without assuming a cutoff. The cutoff is a second decision, chosen only after the model is fixed and before the test probabilities are evaluated.</p></div>
+      </section>
+
+      <section class="code-section" id="regression">
+        <p class="section-number">04</p>
+        <h2>Correct log-price predictions</h2>
+        <pre><code>xgb_model &lt;- xgb.train(
+  params = list(
+    objective = "reg:squarederror", eval_metric = "rmse",
+    max_depth = 3, eta = 0.04,
+    subsample = 0.85, colsample_bytree = 0.85
+  ),
+  data = dreg_train,
+  nrounds = 1600,
+  watchlist = list(validation = dreg_validation),
+  early_stopping_rounds = 60,
+  verbose = 0
+)
+
+train_log_prediction &lt;- predict(xgb_model, dreg_train)
+smearing &lt;- mean(exp(log_y_train - train_log_prediction))
+
+test_prediction &lt;- pmax(
+  0,
+  exp(predict(xgb_model, dreg_test)) * smearing - 1
+)</code></pre>
+        <p>The smearing factor is estimated from training residuals. It corrects the downward bias that appears when a log prediction is simply exponentiated.</p>
+      </section>
+
+      <section class="code-section" id="evaluation">
+        <p class="section-number">05</p>
+        <h2>Report dollar and probability error</h2>
+        <pre><code>price_metrics &lt;- tibble(
+  MAE = mean(abs(actual - predicted)),
+  RMSE = sqrt(mean((actual - predicted)^2)),
+  RMSLE = sqrt(mean((log1p(actual) - log1p(predicted))^2))
+)
+
+classification_metrics &lt;- tibble(
+  AUC = as.numeric(roc(actual, probability)$auc),
+  Brier = mean((probability - as.integer(actual == "Yes"))^2),
+  Sensitivity = true_positive / actual_positive,
+  Specificity = true_negative / actual_negative
+)</code></pre>
+        <div class="code-toolbar"><p>Complete package checks, feature engineering and model comparison</p><a class="button secondary" href="../code/airbnb-advanced-modelling.R" download>Download full code</a></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="airbnb-advanced-modelling.html">← Return to project walkthrough</a><a href="../code/airbnb-advanced-modelling.R" download>Download full code</a></footer>
+  </main>
+</body>
+</html>

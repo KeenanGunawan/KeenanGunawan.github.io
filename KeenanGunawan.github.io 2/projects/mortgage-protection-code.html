@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Reproducible Python pricing code for Keenan Gunawan's mortgage protection insurance case study.">
+  <title>Python Code: Mortgage Protection Insurance | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Source+Mono+4:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a class="active" href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#mortality">Mortality</a>
+    <a href="#decrements">Decrements</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#sensitivity">Sensitivity</a>
+    <a href="#checks">Checks</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="mortgage-protection-pricing.html">Mortgage Protection Insurance Pricing</a><span>/</span><span>Python code</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Technical appendix · Python</p>
+        <h1>Reproducible mortgage protection pricing</h1>
+        <p class="lead">A dependency-free implementation of the mortality law, competing decrements, mortgage schedule, premium equation and sensitivity tests.</p>
+        <div class="code-intro"><p>Run from the repository root with <code>python3 code/mortgage-protection-pricing.py</code>. The script uses only Python’s standard library.</p></div>
+        <div class="code-toolbar"><p>Python · Closed-form mortality · EPV pricing</p><a class="button primary" href="../code/mortgage-protection-pricing.py" download>Download the .py file</a></div>
+      </header>
+
+      <section class="code-section" id="mortality">
+        <p class="section-number">01</p>
+        <h2>Closed-form cumulative hazard</h2>
+        <pre><code>def cumulative_hazard(age, duration):
+    background = (
+        math.exp(EPSILON)
+        * (math.exp(KAPPA * duration) - 1) / KAPPA
+    )
+    ageing = (
+        math.exp(ALPHA + BETA * age)
+        * (math.exp((BETA + KAPPA) * duration) - 1)
+        / (BETA + KAPPA)
+    )
+    return background + ageing</code></pre>
+        <p>Monthly death probabilities come from hazard increments between consecutive month boundaries, so no numerical integration is required.</p>
+      </section>
+
+      <section class="code-section" id="decrements">
+        <p class="section-number">02</p>
+        <h2>Competing monthly decrements</h2>
+        <pre><code>def dependent_decrements(independent_death):
+    qd = independent_death * (
+        1 - MONTHLY_LAPSE / 2 - MONTHLY_PREPAYMENT / 2
+        + MONTHLY_LAPSE * MONTHLY_PREPAYMENT / 3
+    )
+    ql = MONTHLY_LAPSE * (
+        1 - independent_death / 2 - MONTHLY_PREPAYMENT / 2
+        + independent_death * MONTHLY_PREPAYMENT / 3
+    )
+    qp = MONTHLY_PREPAYMENT * (
+        1 - independent_death / 2 - MONTHLY_LAPSE / 2
+        + independent_death * MONTHLY_LAPSE / 3
+    )
+    return qd, ql, qp</code></pre>
+        <div class="interpretation"><span>State update</span><p>The in-force proportion for the following month equals the current proportion multiplied by <code>1 − qd − ql − qp</code>.</p></div>
+      </section>
+
+      <section class="code-section" id="pricing">
+        <p class="section-number">03</p>
+        <h2>Solve the premium analytically</h2>
+        <pre><code>premium = (
+    benefit_pv + fixed_expense_pv
+) / (
+    premium_annuity * (1 - TARGET_MARGIN)
+    - commission_factor
+)
+
+epv_premiums = premium * premium_annuity
+npv_profit = (
+    premium * premium_annuity
+    - premium * commission_factor
+    - fixed_expense_pv
+    - benefit_pv
+)
+profit_margin = npv_profit / epv_premiums</code></pre>
+        <p>The equation is closed form because premium income and commission are both linear in the monthly premium.</p>
+      </section>
+
+      <section class="code-section" id="sensitivity">
+        <p class="section-number">04</p>
+        <h2>Freeze the price before stressing risk</h2>
+        <pre><code>fixed_premium = baseline["B"]["monthly_premium"]
+
+for rate in (0.065, 0.075, 0.085, 0.095):
+    stressed = project_option(
+        loan=600_000,
+        rate=rate,
+        years=25,
+        premium=fixed_premium,
+    )
+    print(rate, stressed["profit_margin"])</code></pre>
+        <p>This design changes one factor at a time. It avoids interpreting the combined loan-size and rate difference between Options B and C as a pure interest-rate effect.</p>
+      </section>
+
+      <section class="code-section" id="checks">
+        <p class="section-number">05</p>
+        <h2>Expose cash-flow failures</h2>
+        <pre><code>negative_months = sum(
+    value &lt; -1e-9 for value in gross_cashflows
+)
+minimum_gross_cashflow = min(gross_cashflows)</code></pre>
+        <div class="interpretation"><span>Audit result</span><p>The baseline models contain 19, 24 and 23 negative gross-cash-flow months. That contradicts the original claim that only month one required a reserve and prevents the public version from overstating what the spreadsheet implemented.</p></div>
+        <div class="code-toolbar"><p>Complete life table, pricing, stress tests and audit checks</p><a class="button secondary" href="../code/mortgage-protection-pricing.py" download>Download full code</a></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="mortgage-protection-pricing.html">← Return to project walkthrough</a><a href="../code/mortgage-protection-pricing.py" download>Download full code</a></footer>
+  </main>
+</body>
+</html>
+

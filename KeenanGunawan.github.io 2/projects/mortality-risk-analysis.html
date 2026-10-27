@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An audited survival-analysis case study on mortality, lifestyle behaviour and private insurance by Keenan Gunawan.">
+  <title>Mortality Risk &amp; Insurance Access | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Source+Mono+4:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a class="active" href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <a href="#overview">Overview</a>
+    <a href="#question">Questions</a>
+    <a href="#audit">Data audit</a>
+    <a href="#cancer">Cancer cohort</a>
+    <a href="#insurance">Insurance access</a>
+    <a href="#actuarial">Actuarial view</a>
+    <a href="#review">What I corrected</a>
+    <a href="#interview">Interview summary</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><span>Projects</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Survival analysis · R · Individual project</p>
+        <h1>Mortality Risk, Lifestyle &amp; Insurance Access</h1>
+        <p class="lead">An audited survival analysis of linked US health-survey records, separating genuine predictive signals from missing-data artefacts and causal overstatement.</p>
+        <div class="project-meta">
+          <div><span>Source population</span><strong>1,785,942 records</strong></div>
+          <div><span>Follow-up</span><strong>Survey year to death or 2019</strong></div>
+          <div><span>Tools</span><strong>R · Kaplan–Meier · Cox PH</strong></div>
+        </div>
+        <div class="project-actions"><a class="button secondary" href="mortality-risk-code.html">View cleaned R analysis</a></div>
+      </header>
+
+      <section id="question">
+        <p class="section-number">01</p>
+        <h2>Three questions with one careful boundary</h2>
+        <div class="finding-grid">
+          <article><span>Cancer cohort</span><strong>What predicts mortality?</strong><p>Explore post-survey survival among respondents who reported breast cancer in the survey year.</p></article>
+          <article><span>Insurance access</span><strong>Does PHI mark lower risk?</strong><p>Estimate the association between private health insurance and mortality after measured covariates.</p></article>
+          <article><span>Risk classification</span><strong>What is fair to use?</strong><p>Translate model evidence into pricing and underwriting considerations without treating correlation as causation.</p></article>
+        </div>
+        <div class="callout"><strong>Boundary</strong><p>The file records cancer status at the survey, not an exact diagnosis date. I therefore describe survival after survey, not survival from diagnosis. The results are observational associations and are not medical advice or causal estimates.</p></div>
+      </section>
+
+      <section id="audit">
+        <p class="section-number">02</p>
+        <h2>Audit the cohort before modelling it</h2>
+        <ol class="process-list">
+          <li><span>1</span><div><strong>Validate time and outcome</strong><p>Check that exit year never precedes survey year and death is coded only as 0 or 1.</p></div></li>
+          <li><span>2</span><div><strong>Preserve unknown cancer status</strong><p>A missing organ-specific answer is not silently converted into “No cancer.” Positive breast-cancer responses define the focused cohort directly.</p></div></li>
+          <li><span>3</span><div><strong>Define lifestyle consistently</strong><p>The favourable profile is normal BMI plus never smoking. Overweight respondents are no longer placed in that group.</p></div></li>
+          <li><span>4</span><div><strong>Show every denominator</strong><p>Unadjusted survival uses all records with observed PHI; the Cox model uses only complete covariate records.</p></div></li>
+          <li><span>5</span><div><strong>Control calendar entry</strong><p>The PHI model stratifies the baseline hazard by survey year to absorb broad differences between survey cohorts.</p></div></li>
+        </ol>
+        <div class="data-quality"><span>Coverage warning</span><p>BMI, smoking and earnings were collected unevenly across survey waves. Complete-case estimates therefore describe a much smaller selected sample, not the full 1.79 million records. Survey weights were not present in the supplied file, so these are sample associations rather than population estimates.</p></div>
+      </section>
+
+      <section id="cancer">
+        <p class="section-number">03</p>
+        <h2>Breast-cancer cohort: strong signal, limited evidence</h2>
+        <p>The breast-cancer cohort contains 400 respondents and 307 deaths. Only 98 have complete BMI and smoking data; 28 meet the corrected favourable-profile definition. This makes effect sizes more informative than binary “significant / not significant” labels.</p>
+        <div class="finding-grid">
+          <article><span>Complete Cox sample</span><strong>98 people · 81 deaths</strong><p>The model is event-rich but still small, so subgroup estimates remain imprecise.</p></article>
+          <article><span>Current smoking</span><strong>HR 2.86</strong><p>Compared with never smokers; 95% CI 1.37–5.96 after adjustment.</p></article>
+          <article><span>Age</span><strong>HR 1.081 per year</strong><p>Older age was associated with higher hazard, although its proportional-hazards test needs caution.</p></article>
+        </div>
+        <div class="model-score-chart" role="img" aria-label="Five-year survival was 85.7 percent for the favourable lifestyle group and 72.9 percent for the other group">
+          <div class="chart-card-head"><div><strong>Five-year estimated survival</strong><span>Unadjusted Kaplan–Meier · n = 98</span></div></div>
+          <div class="model-score-row gamma"><span>Favourable</span><div><i style="--value:85.7%"></i></div><b>85.7%</b></div>
+          <div class="model-score-row baseline"><span>Other</span><div><i style="--value:72.9%"></i></div><b>72.9%</b></div>
+        </div>
+        <div class="interpretation"><span>Interpretation</span><p>The 12.8-point gap is directionally interesting, but the log-rank test was not conclusive (p = 0.425). The favourable group has only 28 people, and missingness may select a different kind of respondent into the analysis.</p></div>
+      </section>
+
+      <section id="insurance">
+        <p class="section-number">04</p>
+        <h2>Private insurance is an informative marker—not proof of protection</h2>
+        <p>Among 1,249,332 respondents with recorded private health insurance status, holders had higher unadjusted survival. The adjusted model then used 116,477 complete records and stratified by survey year.</p>
+        <div class="model-score-chart" role="img" aria-label="Twenty-year survival was 80.1 percent among private health insurance holders and 73.6 percent among non-holders">
+          <div class="chart-card-head"><div><strong>Twenty-year estimated survival</strong><span>Unadjusted Kaplan–Meier · recorded PHI cohort</span></div></div>
+          <div class="model-score-row gamma"><span>Has PHI</span><div><i style="--value:80.1%"></i></div><b>80.1%</b></div>
+          <div class="model-score-row baseline"><span>No PHI</span><div><i style="--value:73.6%"></i></div><b>73.6%</b></div>
+        </div>
+        <div class="scheme-table mortality-table" role="table" aria-label="Adjusted Cox proportional hazards results">
+          <div class="scheme-table-head" role="row"><span>Predictor</span><span>Hazard ratio</span><span>95% confidence interval</span><span>Reading</span></div>
+          <div role="row"><strong>Has PHI</strong><span>0.820</span><span>0.787–0.855</span><span>18% lower estimated hazard</span></div>
+          <div role="row"><strong>Age, +1 year</strong><span>1.091</span><span>1.090–1.093</span><span>Higher hazard with age</span></div>
+          <div role="row"><strong>Male</strong><span>1.633</span><span>1.574–1.694</span><span>Higher adjusted hazard</span></div>
+          <div role="row"><strong>Current smoker</strong><span>2.514</span><span>2.412–2.620</span><span>Largest modifiable marker</span></div>
+          <div role="row"><strong>Obese BMI</strong><span>1.389</span><span>1.329–1.451</span><span>Higher adjusted hazard</span></div>
+        </div>
+        <div class="callout"><strong>Do not read HR 0.820 as a treatment effect</strong><p>People with PHI differ in income, education, employment, healthcare use and unmeasured health characteristics. Adjustment reduces measured confounding; it does not randomise coverage or establish that PHI itself caused lower mortality.</p></div>
+      </section>
+
+      <section id="actuarial">
+        <p class="section-number">05</p>
+        <h2>Actuarial interpretation</h2>
+        <div class="reflection-grid">
+          <div><span>What the model supports</span><ul><li>Smoking is a strong mortality marker in both the focused and broader samples.</li><li>PHI is useful for portfolio monitoring and segmentation diagnostics.</li><li>Socio-economic and lifestyle variables should be considered together.</li><li>Sample coverage and missingness belong in model governance, not a footnote.</li></ul></div>
+          <div><span>What requires restraint</span><ul><li>PHI should not be treated as a direct causal pricing factor.</li><li>BMI may proxy structural disadvantage and should not be used alone.</li><li>Small cancer subgroups cannot support aggressive underwriting decisions.</li><li>Any rating use requires jurisdiction-specific legal, ethical and fairness review.</li></ul></div>
+        </div>
+      </section>
+
+      <section id="review">
+        <p class="section-number">06</p>
+        <h2>What I corrected</h2>
+        <div class="limitation-list">
+          <article><h3>Unknown is not “No cancer”</h3><p>The original rule labelled a person cancer-free when any available organ-specific field said “No.” The rebuild preserves uncertainty and defines the breast cohort from a direct positive response.</p></article>
+          <article><h3>Lifestyle definition matched the narrative</h3><p>The report described normal BMI plus never smoking, but the code also counted overweight respondents. The new code uses one definition throughout.</p></article>
+          <article><h3>Model denominator disclosed</h3><p>The PHI section described 1.25 million observed records next to an adjusted model fitted on 116,477 complete cases. Both samples are now labelled at the point of use.</p></article>
+          <article><h3>Formal PH check added</h3><p>The Cox model now includes a Schoenfeld-residual test. Age showed evidence of non-proportionality in the small cancer model, so its single hazard ratio is presented cautiously.</p></article>
+          <article><h3>Calendar cohorts controlled</h3><p>The broad PHI model stratifies by survey year so respondents entering in different years do not share one baseline hazard.</p></article>
+          <article><h3>Causal language removed</h3><p>Observed PHI and lifestyle differences are described as associations. Claims about healthcare access, treatment or behaviour would need a stronger identification design.</p></article>
+        </div>
+      </section>
+
+      <section id="interview">
+        <p class="section-number">07</p>
+        <h2>How I would explain it in an interview</h2>
+        <div class="interview-box"><p class="eyebrow">60-second explanation</p><p>“I analysed linked health-survey and mortality records using Kaplan–Meier curves and Cox proportional hazards models. The most important part was not just fitting the model—it was auditing the cohort. I found that the original cancer rule treated some unknown responses as negatives, the lifestyle definition was inconsistent, and the PHI model’s complete-case sample was much smaller than the descriptive cohort. After rebuilding it, current smoking remained a strong mortality marker: a hazard ratio of 2.86 in the breast-cancer cohort and 2.51 in the broader model. PHI was associated with an 18% lower adjusted hazard, but I would not call that causal because of selection and unmeasured confounding. The project taught me to connect survival modelling with data quality, model assumptions and ethical risk classification.”</p></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="../index.html">← Back to portfolio</a><a href="mortality-risk-code.html">View cleaned R analysis →</a></footer>
+  </main>
+</body>
+</html>
+

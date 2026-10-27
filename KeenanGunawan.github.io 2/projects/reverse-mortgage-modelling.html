@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A reverse mortgage modelling and simulation case study in Excel and VBA by Keenan Gunawan.">
+  <title>Reverse Mortgage Modelling | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Mono+4:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark" aria-hidden="true">KG</span>
+      <span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span>
+    </a>
+    <label class="search">
+      <span class="sr-only">Search portfolio</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input type="search" placeholder="Search projects" data-site-search>
+    </label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a class="active" href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a>
+    </div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <a href="#overview">Overview</a>
+    <a href="#question">The question</a>
+    <a href="#architecture">Model architecture</a>
+    <a href="#loan">Loan dynamics</a>
+    <a href="#equity">Equity release</a>
+    <a href="#findings">Findings</a>
+    <a href="#validation">Validation</a>
+    <a href="#reflection">Reflection</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><span>Projects</span></nav>
+
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Financial mathematics · Excel/VBA · Individual project</p>
+        <h1>Reverse Mortgage Modelling &amp; Simulation</h1>
+        <p class="lead">An end-to-end model linking stochastic interest rates, mortgage amortisation, house-price uncertainty and retirement equity withdrawals.</p>
+        <div class="project-meta">
+          <div><span>Simulation</span><strong>1,000 house-price paths</strong></div>
+          <div><span>Tools</span><strong>Excel · VBA</strong></div>
+          <div><span>Horizon</span><strong>Age 30 to 95</strong></div>
+        </div>
+        <div class="project-actions">
+          <a class="button secondary" href="reverse-mortgage-model.html">View model logic &amp; VBA</a>
+        </div>
+      </header>
+
+      <section id="question">
+        <p class="section-number">01</p>
+        <h2>The question</h2>
+        <p>The project asked how a mortgage and later-life equity-release strategy could behave when both borrowing rates and property values are uncertain. I built one connected model to examine repayments, outstanding balances, withdrawals and the equity remaining at the end of the horizon.</p>
+        <div class="callout"><strong>My role</strong><p>I designed the spreadsheet logic, implemented the stochastic processes and amortisation schedule, wrote VBA to run and store 1,000 simulations, created the charts, and documented the assumptions and limitations.</p></div>
+      </section>
+
+      <section id="architecture">
+        <p class="section-number">02</p>
+        <h2>Model architecture</h2>
+        <p>I separated the workbook into calculation, simulation-storage and findings layers so that each stage could be checked before it fed the next.</p>
+        <div class="model-flow" aria-label="Model flow from interest-rate simulation to final equity analysis">
+          <div><span>1</span><strong>Rate model</strong><small>CIR process with frequency-specific time steps</small></div>
+          <i aria-hidden="true">→</i>
+          <div><span>2</span><strong>Amortisation</strong><small>Interest, principal and balance by period</small></div>
+          <i aria-hidden="true">→</i>
+          <div><span>3</span><strong>House prices</strong><small>Stochastic volatility over 1,690 fortnights</small></div>
+          <i aria-hidden="true">→</i>
+          <div><span>4</span><strong>Equity release</strong><small>Withdrawals, cap and final balance</small></div>
+        </div>
+        <div class="detail-grid">
+          <div><span>Rate scenarios</span><strong>7 repayment frequencies</strong><small>Daily through annual</small></div>
+          <div><span>Model scale</span><strong>1.69 million stored values</strong><small>1,691 time points × 1,000 paths</small></div>
+          <div><span>Outputs</span><strong>8 diagnostic charts</strong><small>Rates, balances, cash flows and distributions</small></div>
+        </div>
+      </section>
+
+      <section id="loan">
+        <p class="section-number">03</p>
+        <h2>Stochastic rates and loan dynamics</h2>
+        <p>I used a Cox–Ingersoll–Ross process to generate mean-reverting nominal rates, converted those rates to the selected payment period, and rebuilt the repayment schedule at each step. A dropdown changed the frequency and VBA displayed the relevant section of the schedule.</p>
+        <div class="chart-card balance-card">
+          <div class="chart-card-head"><div><strong>Monthly outstanding balance</strong><span>Illustrative cached simulation · starting balance $1.008m</span></div><div class="legend"><i></i> Balance</div></div>
+          <svg class="balance-svg" viewBox="0 0 700 250" role="img" aria-label="Outstanding balance declines from 1.008 million dollars to approximately zero over 30 years">
+            <g class="grid"><line x1="55" y1="25" x2="660" y2="25"/><line x1="55" y1="80" x2="660" y2="80"/><line x1="55" y1="135" x2="660" y2="135"/><line x1="55" y1="190" x2="660" y2="190"/></g>
+            <g class="axis-labels"><text x="4" y="30">$1.0m</text><text x="12" y="85">$0.7m</text><text x="12" y="140">$0.3m</text><text x="28" y="195">$0</text></g>
+            <polyline points="55,25 155,43 255,67 355,94 455,125 555,162 655,190"/>
+            <g class="year-labels"><text x="50" y="225">0</text><text x="149" y="225">5</text><text x="245" y="225">10</text><text x="345" y="225">15</text><text x="445" y="225">20</text><text x="545" y="225">25</text><text x="641" y="225">30 yrs</text></g>
+          </svg>
+        </div>
+        <p>The changing composition of each repayment was an important validation check: early payments were predominantly interest, while principal became the larger component as the balance reduced.</p>
+      </section>
+
+      <section id="equity">
+        <p class="section-number">04</p>
+        <h2>House prices and equity release</h2>
+        <p>The second half of the model simulated property values with stochastic volatility. VBA recalculated one path at a time and stored 1,000 paths, which were then summarised using the median, mean and a log-price distribution.</p>
+        <ol class="process-list">
+          <li><span>1</span><div><strong>Generate correlated shocks</strong><p>Two random shocks drove changes in variance and house price at each fortnightly step.</p></div></li>
+          <li><span>2</span><div><strong>Store the paths</strong><p>A VBA loop copied each recalculated path into a 1,000-column results sheet for later aggregation.</p></div></li>
+          <li><span>3</span><div><strong>Apply the withdrawal rule</strong><p>Withdrawals began at age 67, accumulated with interest and were checked against the modelled property-value cap.</p></div></li>
+          <li><span>4</span><div><strong>Summarise the range</strong><p>I used both central estimates and the full distribution because the long horizon created a strongly right-skewed outcome set.</p></div></li>
+        </ol>
+      </section>
+
+      <section id="findings">
+        <p class="section-number">05</p>
+        <h2>What the model showed</h2>
+        <div class="finding-grid">
+          <article><span>Loan</span><strong>30-year amortisation</strong><p>The monthly schedule reduced the illustrative $1.008m balance to effectively zero by the end of the term.</p></article>
+          <article><span>Withdrawals</span><strong>$2.808m cumulative</strong><p>The modelled retirement withdrawals accumulated between age 67 and 95 under the selected escalation rule.</p></article>
+          <article><span>Accrued balance</span><strong>$4.795m at age 95</strong><p>Interest compounding created a material gap between cash withdrawn and the final reverse-mortgage balance.</p></article>
+        </div>
+        <div class="interpretation"><span>Decision insight</span><p>The model is most useful as a scenario engine, not a point forecast. It shows how repayment timing, rate assumptions, withdrawal design and long-term property growth interact—and where product sustainability is most sensitive.</p></div>
+      </section>
+
+      <section id="validation">
+        <p class="section-number">06</p>
+        <h2>Validation and model risk</h2>
+        <p>I used balance run-off, repayment composition, frequency comparisons and distribution charts as reasonableness checks. Reviewing the workbook again for this portfolio also exposed improvements I would make before using it for a real decision.</p>
+        <div class="limitation-list">
+          <article><h3>Reproducibility</h3><p>The model uses volatile random-number formulas without a fixed seed. I would move the random-number generation into controlled code so results can be reproduced.</p></article>
+          <article><h3>Long-horizon calibration</h3><p>A fixed 9.55% annual drift over 65 years produces extreme right-tail property values. I would recalibrate the assumptions, add regime scenarios and report real rather than only nominal outcomes.</p></article>
+          <article><h3>Summary-cell audit</h3><p>The original summary label for the final outstanding balance referenced cumulative withdrawals rather than the interest-accrued balance. I identified the correct balance during this review and would add automated reconciliation checks.</p></article>
+          <article><h3>Product realism</h3><p>Fees, borrower behaviour, mortality, changing interest rates and policy constraints were simplified. These would be essential extensions for commercial use.</p></article>
+        </div>
+      </section>
+
+      <section id="reflection">
+        <p class="section-number">07</p>
+        <h2>Reflection and next iteration</h2>
+        <p>This project taught me that building a large model is only half the work. A useful actuarial model also needs controlled assumptions, reproducible runs, transparent checks and outputs that can be explained to a decision-maker.</p>
+        <div class="reflection-grid">
+          <div><span>What worked</span><ul><li>Connected multiple financial components</li><li>Automated 1,000 simulation runs</li><li>Used charts as reasonableness checks</li><li>Documented assumptions and limitations</li></ul></div>
+          <div><span>What I would improve</span><ul><li>Separate inputs, calculations and outputs more clearly</li><li>Add a fixed seed and scenario controls</li><li>Build formula and reconciliation tests</li><li>Recalibrate the long-term property model</li></ul></div>
+        </div>
+        <div class="interview-box"><p class="eyebrow">60-second interview explanation</p><p>“I built an Excel and VBA model that connected a CIR interest-rate process to a mortgage amortisation schedule, then simulated 1,000 stochastic house-price paths and applied a retirement equity-release strategy. The main technical challenge was managing a long simulation horizon while keeping the cash-flow logic auditable. When I revisited the model, I also found a summary-cell reference issue and an assumption that created extreme long-term outcomes. That review reinforced an important lesson for me: model governance and validation matter just as much as implementing the mathematics.”</p></div>
+      </section>
+    </article>
+
+    <footer class="article-footer"><a href="../index.html">← Back to portfolio</a><a href="reverse-mortgage-model.html">View model logic &amp; VBA →</a></footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A motor insurance bonus-malus scheme analysis using Markov chains, Monte Carlo simulation and Loimaranta efficiency by Keenan Gunawan.">
+  <title>Bonus-Malus Scheme Analysis | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Mono+4:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark" aria-hidden="true">KG</span>
+      <span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span>
+    </a>
+    <label class="search">
+      <span class="sr-only">Search portfolio</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input type="search" placeholder="Search projects" data-site-search>
+    </label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a class="active" href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a>
+    </div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>On this page</h2>
+    <a href="#overview">Overview</a>
+    <a href="#question">The question</a>
+    <a href="#data">Portfolio data</a>
+    <a href="#approach">Approach</a>
+    <a href="#simulation">2026 simulation</a>
+    <a href="#comparison">Scheme comparison</a>
+    <a href="#audit">Model review</a>
+    <a href="#recommendation">Recommendation</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><span>Projects</span></nav>
+
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Motor insurance pricing · R · Individual project</p>
+        <h1>Bonus-Malus Scheme Design &amp; Profit Analysis</h1>
+        <p class="lead">A comparison of three experience-rating designs using Markov chains, Monte Carlo simulation, long-run profitability and Loimaranta efficiency.</p>
+        <div class="project-meta">
+          <div><span>Portfolio</span><strong>10,000 policies</strong></div>
+          <div><span>Tools</span><strong>R · Base statistics</strong></div>
+          <div><span>Simulation</span><strong>2,000 scenarios</strong></div>
+        </div>
+        <div class="project-actions">
+          <a class="button secondary" href="bonus-malus-code.html">View cleaned R analysis</a>
+        </div>
+      </header>
+
+      <section id="question">
+        <p class="section-number">01</p>
+        <h2>The decision question</h2>
+        <p>An insurer was considering whether to retain its five-level bonus-malus system, simplify it to three levels, or introduce a more detailed seven-level design for younger drivers. I assessed which structure best balanced premium income, responsiveness to claim frequency, customer clarity and risk-based pricing.</p>
+        <div class="callout"><strong>My role</strong><p>I built the transition matrices, simulated the next policy year, calculated stationary distributions and long-run profit, measured Loimaranta efficiency, and translated the trade-offs into a product recommendation.</p></div>
+      </section>
+
+      <section id="data">
+        <p class="section-number">02</p>
+        <h2>Portfolio data and assumptions</h2>
+        <p>The data contained one row per policyholder with age and current no-claim-discount level. I validated the population before modelling and kept the two risk groups separate throughout the corrected analysis.</p>
+        <div class="detail-grid">
+          <div><span>Younger drivers</span><strong>5,000 policies</strong><small>Ages 20–25 · claim frequency 0.22</small></div>
+          <div><span>Older drivers</span><strong>5,000 policies</strong><small>Ages 50–55 · claim frequency 0.16</small></div>
+          <div><span>Claim severity</span><strong>$2,500 average cost</strong><small>Held constant across groups</small></div>
+        </div>
+        <div class="data-quality"><span>Data checks</span><p>10,000 unique policy numbers · no missing required values · no ages outside the two modelled groups · all starting levels within −1 to 3</p></div>
+      </section>
+
+      <section id="approach">
+        <p class="section-number">03</p>
+        <h2>Approach</h2>
+        <ol class="process-list">
+          <li><span>1</span><div><strong>Translate claim counts into transitions</strong><p>Used Poisson probabilities for zero, one, and two-or-more claims to populate each scheme’s transition matrix.</p></div></li>
+          <li><span>2</span><div><strong>Simulate the next policy year</strong><p>Moved each policyholder from their actual starting level and recalculated premium and claim cost across 2,000 scenarios.</p></div></li>
+          <li><span>3</span><div><strong>Find the long-run mix</strong><p>Solved for each transition matrix’s stationary distribution and converted the level mix into annual premium income.</p></div></li>
+          <li><span>4</span><div><strong>Measure pricing responsiveness</strong><p>Calculated Loimaranta efficiency across claim frequencies from 0.01 to 1.00.</p></div></li>
+          <li><span>5</span><div><strong>Audit the implementation</strong><p>Retested group assumptions and premium multipliers before comparing profit with risk differentiation.</p></div></li>
+        </ol>
+      </section>
+
+      <section id="simulation">
+        <p class="section-number">04</p>
+        <h2>2026 simulation under the current scheme</h2>
+        <p>The current five-level design produced a stable premium base. Profit varied more than premium income because the number of simulated claims directly affected claim cost.</p>
+        <div class="finding-grid">
+          <article><span>Mean premium</span><strong>$6.271m</strong><p>Standard deviation of approximately $9.0k across 2,000 scenarios.</p></article>
+          <article><span>Mean profit</span><strong>$1.518m</strong><p>After applying the simulated claim count and $2,500 average severity.</p></article>
+          <article><span>Profit variability</span><strong>$102.3k SD</strong><p>The middle 90% of outcomes ran from about $1.349m to $1.691m.</p></article>
+        </div>
+        <div class="interpretation"><span>Interpretation</span><p>Premium income was predictable because movements across 10,000 policies diversified. Claim-count variation remained the main source of one-year profit uncertainty.</p></div>
+      </section>
+
+      <section id="comparison">
+        <p class="section-number">05</p>
+        <h2>Long-run scheme comparison</h2>
+        <p>The corrected results revealed a clear trade-off. The most profitable structure was not the structure that responded most strongly to differences in claim frequency.</p>
+        <div class="result-chart scheme-profit-chart" role="img" aria-label="Corrected long-run annual profit: Option 0 is 0.872 million dollars, Option 1 is 2.099 million dollars, and Option 2 is 0.181 million dollars">
+          <div class="result-row"><span>Option 0</span><div><i style="--value:41.5%"></i></div><strong>$0.872m</strong></div>
+          <div class="result-row"><span>Option 1</span><div><i style="--value:100%"></i></div><strong>$2.099m</strong></div>
+          <div class="result-row other"><span>Option 2</span><div><i style="--value:8.6%"></i></div><strong>$0.181m</strong></div>
+        </div>
+
+        <div class="scheme-table" role="table" aria-label="Scheme comparison">
+          <div class="scheme-table-head" role="row"><span>Scheme</span><span>Structure</span><span>Profit</span><span>Peak efficiency</span><span>Main trade-off</span></div>
+          <div role="row"><strong>Option 0</strong><span>5 levels</span><span>$0.872m</span><span>0.439</span><span>Moderate differentiation</span></div>
+          <div role="row"><strong>Option 1</strong><span>3 levels</span><span>$2.099m</span><span>0.149</span><span>Highest profit, weakest response</span></div>
+          <div role="row"><strong>Option 2</strong><span>7 young / 5 old</span><span>$0.181m</span><span>0.893</span><span>Strong response, generous discounts</span></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-head"><div><strong>Loimaranta efficiency</strong><span>Higher values indicate stronger premium response to claim frequency</span></div><div class="scheme-legend"><i></i> Option 0 <i></i> Option 1 <i></i> Option 2</div></div>
+          <svg class="efficiency-svg" viewBox="0 0 700 245" role="img" aria-label="Option 2 has the highest Loimaranta efficiency, Option 0 is moderate and Option 1 is lowest">
+            <g class="grid"><line x1="55" y1="25" x2="660" y2="25"/><line x1="55" y1="83" x2="660" y2="83"/><line x1="55" y1="142" x2="660" y2="142"/><line x1="55" y1="200" x2="660" y2="200"/></g>
+            <g class="axis-labels"><text x="15" y="30">0.95</text><text x="23" y="88">0.6</text><text x="23" y="147">0.3</text><text x="30" y="205">0</text></g>
+            <path class="option-zero" d="M55.0,197.1 L86.8,192.7 L118.7,186.4 L150.5,177.9 L182.4,167.6 L214.2,156.1 L246.1,144.4 L277.9,134.1 L309.7,126.0 L341.6,120.8 L373.4,118.7 L405.3,119.3 L437.1,122.0 L468.9,126.2 L500.8,131.2 L532.6,136.5 L564.5,141.9 L596.3,147.0 L628.2,151.9 L660.0,156.3"/>
+            <path class="option-one" d="M55.0,197.8 L86.8,194.9 L118.7,191.6 L150.5,188.2 L182.4,184.9 L214.2,181.8 L246.1,179.2 L277.9,176.9 L309.7,175.2 L341.6,173.9 L373.4,173.0 L405.3,172.5 L437.1,172.4 L468.9,172.5 L500.8,172.8 L532.6,173.2 L564.5,173.9 L596.3,174.6 L628.2,175.4 L660.0,176.2"/>
+            <path class="option-two" d="M55.0,196.1 L86.8,190.3 L118.7,181.6 L150.5,169.0 L182.4,151.4 L214.2,128.6 L246.1,101.7 L277.9,74.5 L309.7,51.9 L341.6,38.3 L373.4,35.5 L405.3,42.3 L437.1,55.6 L468.9,72.0 L500.8,88.9 L532.6,104.7 L564.5,118.7 L596.3,130.6 L628.2,140.5 L660.0,148.7"/>
+            <g class="year-labels"><text x="55" y="230">0.05</text><text x="341" y="230">0.50</text><text x="650" y="230">1.00 λ</text></g>
+          </svg>
+        </div>
+      </section>
+
+      <section id="audit">
+        <p class="section-number">06</p>
+        <h2>Model review and corrections</h2>
+        <p>I revisited the original analysis while preparing this portfolio. The audit found that the group-specific starting distributions, claim frequencies and stated premium multipliers needed to be applied more consistently. Correcting them changed the long-run ranking, especially for Option 2.</p>
+        <div class="limitation-list">
+          <article><h3>Starting levels</h3><p>The simulation now uses the actual level distribution for each age group instead of scaling the combined portfolio distribution.</p></article>
+          <article><h3>Age-specific frequency</h3><p>Long-run calculations now use λ = 0.22 for younger drivers and λ = 0.16 for older drivers under every applicable scheme.</p></article>
+          <article><h3>Premium multipliers</h3><p>The seven-level young-driver design now matches the stated discounts: 40% discount through 80% penalty.</p></article>
+          <article><h3>Reproducibility</h3><p>The cleaned analysis validates the data, fixes the random seed and avoids a specialist Markov-chain dependency.</p></article>
+        </div>
+        <div class="interpretation"><span>Lesson</span><p>A technically plausible output is not enough. Scheme definitions, state ordering and group assumptions must reconcile before a recommendation is made.</p></div>
+      </section>
+
+      <section id="recommendation">
+        <p class="section-number">07</p>
+        <h2>Recommendation and next iteration</h2>
+        <p>Under the fixed assumptions, Option 1 maximises long-run profit but provides the weakest risk differentiation. Option 2 responds best to claim frequency but its stated discounts reduce profit substantially. I would not launch either alternative from these results alone.</p>
+        <div class="callout"><strong>Recommended next step</strong><p>Recalibrate Option 2’s premium multipliers and test profit, retention and customer migration together. A targeted design could retain its strong risk responsiveness without giving away as much premium income.</p></div>
+        <div class="reflection-grid">
+          <div><span>What this demonstrates</span><ul><li>Markov-chain modelling</li><li>Monte Carlo simulation</li><li>Insurance pricing trade-offs</li><li>Independent model validation</li></ul></div>
+          <div><span>What I would add</span><ul><li>Claim-severity distributions</li><li>Price elasticity and lapse behaviour</li><li>Confidence intervals for profit comparisons</li><li>Sensitivity testing around λ and severity</li></ul></div>
+        </div>
+        <div class="interview-box"><p class="eyebrow">60-second interview explanation</p><p>“I compared three motor-insurance bonus-malus schemes using Poisson claim counts, Markov-chain transition matrices, a 2,000-run Monte Carlo simulation and Loimaranta efficiency. The current scheme produced about $1.52 million expected profit for the next year. During a later audit, I corrected how age-group assumptions and premium multipliers fed the long-run model. That changed the conclusion: the simplified scheme had the highest profit, while the complex scheme had the best risk responsiveness. My recommendation was to recalibrate the complex tariffs and test retention before implementation. The project taught me how important model validation is when a small coding assumption can reverse a business decision.”</p></div>
+      </section>
+    </article>
+
+    <footer class="article-footer"><a href="../index.html">← Back to portfolio</a><a href="bonus-malus-code.html">View cleaned R analysis →</a></footer>
+  </main>
+</body>
+</html>

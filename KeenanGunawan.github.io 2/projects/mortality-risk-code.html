@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cleaned R survival-analysis code for Keenan Gunawan's mortality-risk case study.">
+  <title>R Code: Mortality Risk &amp; Insurance Access | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Source+Mono+4:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a class="active" href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#variables">Variables</a>
+    <a href="#cancer">Cancer cohort</a>
+    <a href="#survival">Survival model</a>
+    <a href="#insurance">PHI model</a>
+    <a href="#guardrails">Guardrails</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="mortality-risk-analysis.html">Mortality Risk &amp; Insurance Access</a><span>/</span><span>R code</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Technical appendix · R</p>
+        <h1>Audited survival-analysis pipeline</h1>
+        <p class="lead">Selected code from the cleaned workflow. The downloadable script validates the input, constructs transparent cohorts, fits the survival models and prints every analysis denominator.</p>
+        <div class="code-intro"><p>The raw linked health file is intentionally not published. Run the script with an authorised local copy: <code>Rscript code/mortality-risk-analysis.R "/path/to/IPUMSNHIS_Processed.csv"</code>.</p></div>
+        <div class="code-toolbar"><p>R · data.table · survival</p><a class="button primary" href="../code/mortality-risk-analysis.R" download>Download the .R file</a></div>
+      </header>
+
+      <section class="code-section" id="variables">
+        <p class="section-number">01</p>
+        <h2>Preserve missing cancer information</h2>
+        <pre><code>dt[, any_recorded_cancer := fcase(
+  breast_cancer == 1L | prostate_cancer == 1L |
+    colorectal_cancer == 1L, "Recorded cancer",
+  breast_cancer == 0L &amp; prostate_cancer == 0L &amp;
+    colorectal_cancer == 0L, "No recorded cancer",
+  default = NA_character_
+)]</code></pre>
+        <div class="interpretation"><span>Guardrail</span><p>A single “No” response does not fill two missing organ-specific fields. The survival cohort is created directly from a recorded positive breast-cancer response.</p></div>
+      </section>
+
+      <section class="code-section" id="cancer">
+        <p class="section-number">02</p>
+        <h2>Use one lifestyle definition</h2>
+        <pre><code>breast &lt;- dt[breast_cancer == 1L]
+
+breast[, favourable_profile := factor(fcase(
+  bmi_group == "Normal" &amp; smoking == "Never", "Favourable",
+  !is.na(bmi_group) &amp; !is.na(smoking), "Other",
+  default = NA_character_
+), levels = c("Other", "Favourable"))]</code></pre>
+        <p>The public analysis calls this a favourable profile rather than a universally “healthy” person. Sleep is excluded because it is not sufficiently observed in the focused cohort.</p>
+      </section>
+
+      <section class="code-section" id="survival">
+        <p class="section-number">03</p>
+        <h2>Fit the model and test its assumption</h2>
+        <pre><code>breast_cox &lt;- coxph(
+  Surv(follow_up_years, death) ~
+    age_at_survey + bmi_group + smoking +
+    education + MARSTLEG,
+  data = breast_cox_data,
+  x = TRUE
+)
+
+summary(breast_cox)
+cox.zph(breast_cox)</code></pre>
+        <div class="interpretation"><span>Why it matters</span><p>The Schoenfeld-residual check found evidence that age may not have a constant effect over time in the small cancer model. That is disclosed rather than hidden behind one hazard ratio.</p></div>
+      </section>
+
+      <section class="code-section" id="insurance">
+        <p class="section-number">04</p>
+        <h2>Separate the descriptive and adjusted samples</h2>
+        <pre><code>phi_observed &lt;- dt[!is.na(phi)]
+phi_km &lt;- survfit(
+  Surv(follow_up_years, death) ~ phi,
+  data = phi_observed
+)
+
+phi_cox_data &lt;- dt[
+  !is.na(phi) &amp; !is.na(bmi_group) &amp;
+  !is.na(smoking) &amp; !is.na(education) &amp;
+  !is.na(income)
+]
+
+phi_cox &lt;- coxph(
+  Surv(follow_up_years, death) ~ phi + age_at_survey +
+    SEX + education + income + bmi_group + smoking +
+    strata(survey_year),
+  data = phi_cox_data
+)</code></pre>
+        <p>The Kaplan–Meier curve uses 1,249,332 observed PHI records. The complete-case adjusted model uses 116,477. Reporting both makes the missing-data cost visible.</p>
+      </section>
+
+      <section class="code-section" id="guardrails">
+        <p class="section-number">05</p>
+        <h2>Validate before estimating</h2>
+        <pre><code>if (any(dt$exit_year &lt; dt$survey_year, na.rm = TRUE)) {
+  stop("Exit year precedes survey year.")
+}
+
+if (!all(na.omit(unique(dt$death)) %in% c(0, 1))) {
+  stop("death must be coded 0/1.")
+}
+
+cat("Adjusted complete-case records:", nrow(phi_cox_data),
+    "| deaths:", sum(phi_cox_data$death), "\n")</code></pre>
+        <div class="code-toolbar"><p>Complete derivation, Kaplan–Meier estimates, Cox models and diagnostics</p><a class="button secondary" href="../code/mortality-risk-analysis.R" download>Download full code</a></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="mortality-risk-analysis.html">← Return to project walkthrough</a><a href="../code/mortality-risk-analysis.R" download>Download full code</a></footer>
+  </main>
+</body>
+</html>
+
