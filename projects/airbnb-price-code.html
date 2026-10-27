@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cleaned R code for Keenan Gunawan's Melbourne Airbnb price modelling project.">
+  <title>R Code: Melbourne Airbnb Price Modelling | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Mono+4:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a class="active" href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#validation">Validation</a>
+    <a href="#features">Features</a>
+    <a href="#split">Train/test split</a>
+    <a href="#models">Models</a>
+    <a href="#metrics">Evaluation</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="airbnb-price-modelling.html">Airbnb Price Modelling</a><span>/</span><span>R code</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Technical appendix · R</p>
+        <h1>Cleaned modelling pipeline</h1>
+        <p class="lead">A reproducible script with explicit data validation, consistent model responses and an honest holdout comparison.</p>
+        <div class="code-intro"><p>The source listing data is not published. Place an authorised copy at <code>data/AirbnbMelbourne.xlsx</code>, or pass its path as the first command-line argument.</p></div>
+        <div class="code-toolbar"><p>R · readxl · fixed random seed</p><a class="button primary" href="../code/airbnb-price-modelling.R" download>Download the .R file</a></div>
+      </header>
+
+      <section class="code-section" id="validation">
+        <p class="section-number">01</p>
+        <h2>Validate and clean once</h2>
+        <pre><code>required_columns &lt;- c(
+  "price", "room_type", "neighbourhood", "accommodates",
+  "bedrooms", "bathrooms", "minimum_nights",
+  "availability_365", "number_of_reviews", "amenities"
+)
+
+missing_columns &lt;- setdiff(required_columns, names(raw))
+if (length(missing_columns) &gt; 0) {
+  stop("Missing required columns: ", paste(missing_columns, collapse = ", "))
+}
+
+model_data &lt;- raw[complete.cases(raw[required_columns]), required_columns]
+model_data &lt;- model_data[
+  model_data$price &gt; 0 &amp; model_data$accommodates &gt; 0 &amp;
+    model_data$bedrooms &gt;= 0 &amp; model_data$bathrooms &gt; 0,
+]</code></pre>
+      </section>
+
+      <section class="code-section" id="features">
+        <p class="section-number">02</p>
+        <h2>Create the modelling features</h2>
+        <pre><code>model_data$amenity_count &lt;- vapply(
+  strsplit(model_data$amenities, ",", fixed = TRUE),
+  length,
+  integer(1)
+)
+
+model_data$log_minimum_nights &lt;- log1p(model_data$minimum_nights)
+model_data$log_reviews &lt;- log1p(model_data$number_of_reviews)
+model_data$room_type &lt;- droplevels(factor(model_data$room_type))
+model_data$neighbourhood &lt;- droplevels(factor(model_data$neighbourhood))</code></pre>
+        <div class="interpretation"><span>Design choice</span><p>The transformed count variables reduce extreme leverage, while the raw price response remains identical for both candidate models.</p></div>
+      </section>
+
+      <section class="code-section" id="split">
+        <p class="section-number">03</p>
+        <h2>Create a reproducible holdout sample</h2>
+        <pre><code>set.seed(3142)
+train_index &lt;- sample.int(nrow(model_data), floor(0.8 * nrow(model_data)))
+
+train &lt;- model_data[train_index,]
+test &lt;- model_data[-train_index,]</code></pre>
+        <p>The fixed seed produces 8,010 training rows and 2,003 test rows every time the script runs on the supplied dataset.</p>
+      </section>
+
+      <section class="code-section" id="models">
+        <p class="section-number">04</p>
+        <h2>Fit comparable models</h2>
+        <pre><code>model_formula &lt;- price ~
+  room_type + neighbourhood +
+  accommodates + I(accommodates^2) + bedrooms + bathrooms +
+  log_minimum_nights + availability_365 + log_reviews + amenity_count
+
+linear_model &lt;- lm(model_formula, data = train)
+
+gamma_model &lt;- glm(
+  model_formula,
+  family = Gamma(link = "log"),
+  data = train
+)</code></pre>
+        <div class="interpretation"><span>Audit change</span><p>The Gamma model now uses positive price directly. The log link handles multiplicative effects and guarantees positive fitted values without double-transforming the response.</p></div>
+      </section>
+
+      <section class="code-section" id="metrics">
+        <p class="section-number">05</p>
+        <h2>Evaluate unseen listings</h2>
+        <pre><code>model_metrics &lt;- function(actual, predicted) {
+  data.frame(
+    MAE = mean(abs(actual - predicted)),
+    RMSE = sqrt(mean((actual - predicted)^2)),
+    RMSLE = sqrt(mean((log1p(actual) - log1p(pmax(predicted, 0)))^2)),
+    MedianAE = median(abs(actual - predicted)),
+    Negative_predictions = sum(predicted &lt; 0)
+  )
+}
+
+metrics &lt;- rbind(
+  Baseline = model_metrics(predictions$actual, predictions$baseline),
+  Linear = model_metrics(predictions$actual, predictions$linear),
+  Gamma = model_metrics(predictions$actual, predictions$gamma)
+)</code></pre>
+        <div class="code-toolbar"><p>Complete data checks, outputs and optional plots</p><a class="button secondary" href="../code/airbnb-price-modelling.R" download>Download full code</a></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="airbnb-price-modelling.html">← Return to project walkthrough</a><a href="../code/airbnb-price-modelling.R" download>Download full code</a></footer>
+  </main>
+</body>
+</html>

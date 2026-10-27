@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Actuarial, insurance, risk and data analytics portfolio of Keenan Gunawan, an Actuarial Studies (Honours) student at UNSW.">
+  <meta name="theme-color" content="#123044">
+  <title>Keenan Gunawan | Actuarial & Risk Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css?v=5">
+  <script src="assets/site.js?v=5" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">KG</span>
+      <span><strong>Keenan Gunawan</strong><small>Actuarial & Risk Analytics</small></span>
+    </a>
+
+    <label class="search">
+      <span class="sr-only">Search portfolio</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input type="search" placeholder="Search projects" data-site-search>
+    </label>
+
+    <nav class="side-nav">
+      <a class="active" href="index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="projects/mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="projects/mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="projects/bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="projects/copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="projects/reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="projects/airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="projects/airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="projects/election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a>
+    </div>
+  </aside>
+
+  <main class="main home-main">
+    <section class="hero" id="introduction">
+      <p class="eyebrow">Actuarial Studies (Honours), UNSW · Sydney</p>
+      <h1>Turning uncertain data into decisions people can understand.</h1>
+      <p class="hero-copy">I’m Keenan, an actuarial studies student seeking internship opportunities across insurance, consulting, risk and analytics. These case studies show how I frame problems, build models, challenge assumptions and communicate decisions.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#featured-projects">Explore the projects</a>
+      </div>
+      <dl class="profile-strip" aria-label="Candidate summary">
+        <div><dt>Graduating</dt><dd>December 2027</dd></div>
+        <div><dt>Location</dt><dd>Sydney, Australia</dd></div>
+        <div><dt>Interested in</dt><dd>Actuarial · Insurance · Risk</dd></div>
+        <div><dt>Toolkit</dt><dd>R · Python · SQL · Excel/VBA</dd></div>
+      </dl>
+    </section>
+
+    <section class="focus-grid" aria-label="Core capabilities">
+      <article><span>01</span><h2>Actuarial thinking</h2><p>Quantifying uncertainty, selecting assumptions and connecting models to financial decisions.</p></article>
+      <article><span>02</span><h2>Statistical analysis</h2><p>Using estimation, hypothesis testing and segmentation to find patterns without overstating them.</p></article>
+      <article><span>03</span><h2>Clear communication</h2><p>Explaining the method, result and limitation so a non-technical reader can act on the analysis.</p></article>
+    </section>
+
+    <section class="section-block" id="featured-projects">
+      <div class="section-heading">
+        <div><p class="eyebrow">Featured work</p><h2>Projects presented as clear analytical case studies.</h2></div>
+        <p>The actuarial and insurance projects appear first. Use the filters to move quickly to the work most relevant to you.</p>
+      </div>
+
+      <div class="project-filterbar" aria-label="Filter projects">
+        <div class="project-filters" role="group" aria-label="Project category">
+          <button type="button" data-project-filter="all" aria-pressed="true">All projects</button>
+          <button type="button" data-project-filter="actuarial" aria-pressed="false">Actuarial &amp; insurance</button>
+          <button type="button" data-project-filter="risk" aria-pressed="false">Risk &amp; finance</button>
+          <button type="button" data-project-filter="data" aria-pressed="false">Data &amp; ML</button>
+        </div>
+        <p class="project-filter-status" data-project-filter-status aria-live="polite">Showing all 8 projects</p>
+      </div>
+
+      <article class="project-card" data-project-category="actuarial risk" data-priority="start">
+        <div class="project-visual scheme-visual" aria-label="Mortgage protection pricing preview">
+          <div class="chart-label"><span>Annual premium</span><strong>12% target margin</strong></div>
+          <div class="mini-scheme-list">
+            <div><b>Option A</b><span>$600k · 20yr</span><i style="--value:76.1%"></i></div>
+            <div><b>Option B</b><span>$600k · 25yr</span><i style="--value:85.8%"></i></div>
+            <div><b>Option C</b><span>$700k · 25yr</span><i style="--value:100%"></i></div>
+          </div>
+          <p>$770 · $868 · $1,012 per year</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Life insurance pricing · Excel &amp; Python</p>
+          <h3>Mortgage Protection Insurance Pricing</h3>
+          <p>Priced three declining-benefit policies using improving mortality, competing decrements, mortgage amortisation and profit testing, then rebuilt the sensitivity analysis.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>Life contingencies</li><li>Profit testing</li><li>Excel</li><li>Python</li>
+          </ul>
+          <a class="text-link" href="projects/mortgage-protection-pricing.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="actuarial">
+        <div class="project-visual advanced-visual" aria-label="Mortality survival analysis preview">
+          <div class="chart-label"><span>Adjusted mortality associations</span><strong>Cox proportional hazards</strong></div>
+          <div class="dual-result-preview">
+            <div><span>Current smoking</span><strong>2.51×</strong><small>Estimated mortality hazard</small></div>
+            <div><span>Private insurance</span><strong>0.82×</strong><small>Association, not causation</small></div>
+          </div>
+          <p>Complete-case model · survey-year-stratified</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Survival analysis · R</p>
+          <h3>Mortality Risk, Lifestyle &amp; Insurance Access</h3>
+          <p>Audited a 1.79-million-record mortality study, corrected cohort definitions and separated predictive evidence from causal and ethical overreach.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>Kaplan–Meier</li><li>Cox PH</li><li>Risk classification</li>
+          </ul>
+          <a class="text-link" href="projects/mortality-risk-analysis.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="actuarial risk">
+        <div class="project-visual scheme-visual" aria-label="Bonus-malus scheme comparison preview">
+          <div class="chart-label"><span>Experience rating</span><strong>3 schemes</strong></div>
+          <div class="mini-scheme-list">
+            <div><b>Option 0</b><span>5 levels</span><i style="--value:41.5%"></i></div>
+            <div><b>Option 1</b><span>3 levels</span><i style="--value:100%"></i></div>
+            <div><b>Option 2</b><span>7 / 5 levels</span><i style="--value:8.6%"></i></div>
+          </div>
+          <p>Corrected long-run profit comparison</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Motor insurance pricing · R</p>
+          <h3>Bonus-Malus Scheme Design &amp; Profit Analysis</h3>
+          <p>Compared three experience-rating structures using Markov chains, 2,000 Monte Carlo scenarios, stationary distributions and Loimaranta efficiency.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>Markov chains</li><li>Monte Carlo</li><li>Insurance pricing</li>
+          </ul>
+          <a class="text-link" href="projects/bonus-malus-analysis.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="risk">
+        <div class="project-visual risk-visual" aria-label="Copula portfolio tail-risk comparison preview">
+          <div class="chart-label"><span>99% portfolio VaR</span><strong>Dependence changes the answer</strong></div>
+          <div class="mini-model-bars">
+            <div><span>Independent</span><i style="--value:64.6%"></i><b>5.39%</b></div>
+            <div class="best"><span>Empirical</span><i style="--value:94.1%"></i><b>7.85%</b></div>
+            <div><span>Stress bound</span><i style="--value:100%"></i><b>8.34%</b></div>
+          </div>
+          <p>Same marginals · different dependence assumptions</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Market risk · R</p>
+          <h3>Copula Tail Risk &amp; ARMA Forecasting</h3>
+          <p>Compared portfolio VaR and Expected Shortfall across dependence models, fitted asymmetric joint tails and tested whether ARMA forecasts added useful short-horizon information.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>Copulas</li><li>VaR &amp; ES</li><li>ARMA</li>
+          </ul>
+          <a class="text-link" href="projects/copula-market-risk.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="actuarial risk">
+        <div class="project-visual model-visual" aria-label="Reverse mortgage model flow preview">
+          <div class="chart-label"><span>Simulation pipeline</span><strong>1,000 paths</strong></div>
+          <div class="mini-model-flow">
+            <div><b>01</b><span>CIR rates</span></div>
+            <i aria-hidden="true">↓</i>
+            <div><b>02</b><span>Loan cash flows</span></div>
+            <i aria-hidden="true">↓</i>
+            <div><b>03</b><span>House prices</span></div>
+            <i aria-hidden="true">↓</i>
+            <div><b>04</b><span>Retirement equity</span></div>
+          </div>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Financial mathematics · Excel/VBA</p>
+          <h3>Reverse Mortgage Modelling &amp; Simulation</h3>
+          <p>Connected stochastic interest rates, mortgage amortisation, 1,000 house-price paths and a retirement equity-release strategy in one auditable model.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>Excel</li><li>VBA</li><li>Monte Carlo</li><li>CIR model</li>
+          </ul>
+          <a class="text-link" href="projects/reverse-mortgage-modelling.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="data">
+        <div class="project-visual advanced-visual" aria-label="Airbnb machine learning model comparison preview">
+          <div class="chart-label"><span>Untouched test results</span><strong>Two modelling tasks</strong></div>
+          <div class="dual-result-preview">
+            <div><span>High-score classifier</span><strong>0.760</strong><small>ROC AUC · XGBoost</small></div>
+            <div><span>Nightly-price model</span><strong>$95.6</strong><small>RMSE · XGBoost</small></div>
+          </div>
+          <p>Selected on validation data, measured once on test data</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Machine learning · R</p>
+          <h3>Airbnb Satisfaction &amp; Price Prediction</h3>
+          <p>Rebuilt a two-part machine learning project with leakage-safe preprocessing, separate validation and test samples, threshold selection and bias-corrected price predictions.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>XGBoost</li><li>Classification</li><li>Model governance</li>
+          </ul>
+          <a class="text-link" href="projects/airbnb-advanced-modelling.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="data">
+        <div class="project-visual airbnb-visual" aria-label="Airbnb model accuracy preview">
+          <div class="chart-label"><span>Holdout error</span><strong>MAE · lower is better</strong></div>
+          <div class="mini-model-bars">
+            <div><span>Baseline</span><i style="--value:100%"></i><b>$121.0</b></div>
+            <div><span>Linear</span><i style="--value:74.8%"></i><b>$90.5</b></div>
+            <div class="best"><span>Gamma GLM</span><i style="--value:69.5%"></i><b>$84.1</b></div>
+          </div>
+          <p>2,003 unseen Melbourne listings</p>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Statistical machine learning · R</p>
+          <h3>Melbourne Airbnb Price Modelling</h3>
+          <p>Rebuilt and validated a nightly-price model, comparing linear regression with a Gamma GLM on a reproducible holdout sample.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>Regression</li><li>Gamma GLM</li><li>Model validation</li>
+          </ul>
+          <a class="text-link" href="projects/airbnb-price-modelling.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-category="data">
+        <div class="project-visual" aria-label="Candidate support preview chart">
+          <div class="chart-label"><span>Estimated support</span><strong>n = 1,453</strong></div>
+          <div class="mini-bar"><span>Candidate A</span><i style="--value:53.4%"></i><b>53.4%</b></div>
+          <div class="mini-bar"><span>Candidate B</span><i style="--value:40.9%"></i><b>40.9%</b></div>
+          <div class="mini-bar muted"><span>Other</span><i style="--value:5.7%"></i><b>5.7%</b></div>
+        </div>
+        <div class="project-content">
+          <p class="project-kicker">Statistical inference · R</p>
+          <h3>Election Polling & Demographic Analysis</h3>
+          <p>Estimated voting preferences and confidence intervals, compared support across demographic groups, tested gender differences and assessed the limitations of the poll.</p>
+          <ul class="tag-list" aria-label="Project skills">
+            <li>R</li><li>tidyverse</li><li>Confidence intervals</li><li>Hypothesis testing</li>
+          </ul>
+          <a class="text-link" href="projects/election-polling.html">Read the full walkthrough <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+    </section>
+
+    <section class="contact-cta" aria-labelledby="contact-title">
+      <div><p class="eyebrow">Internship opportunities</p><h2 id="contact-title">Looking for someone who can explain the model as well as build it?</h2><p>I’m open to actuarial, insurance, risk and analytics opportunities in Australia. My CV and academic transcript are available on request.</p></div>
+      <div class="contact-panel">
+        <dl class="contact-details" aria-label="Contact details">
+          <div><dt>Email</dt><dd><a href="mailto:keenan.marvelian.gunawannn@gmail.com">keenan.marvelian.gunawannn@gmail.com</a></dd></div>
+          <div><dt>Phone</dt><dd><a href="tel:+61431101488">+61 431 101 488</a></dd></div>
+          <div><dt>Location</dt><dd>Sydney, Australia</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section-block compact" id="about">
+      <p class="eyebrow">How to read this portfolio</p>
+      <h2>Built for two levels of detail.</h2>
+      <div class="reader-grid">
+        <div><h3>The 60-second view</h3><p>Problem, tools, approach and key findings are visible at the top of every project.</p></div>
+        <div><h3>The technical walkthrough</h3><p>Methods, selected code, assumptions, interpretation and limitations follow for readers who want the detail.</p></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

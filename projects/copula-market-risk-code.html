@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Reproducible R code for Keenan Gunawan's copula market-risk and ARMA forecasting case study.">
+  <title>R Code: Copula Market Risk | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Source+Mono+4:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">KG</span><span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span></a>
+    <label class="search"><span class="sr-only">Search portfolio</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input type="search" placeholder="Search projects" data-site-search></label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a class="active" href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer"><a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a></div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#data">Data</a>
+    <a href="#risk">Risk functions</a>
+    <a href="#copulas">Copulas</a>
+    <a href="#selection">Selection</a>
+    <a href="#forecast">Forecasting</a>
+    <a href="#checks">Verification</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="copula-market-risk.html">Copula Tail Risk &amp; ARMA Forecasting</a><span>/</span><span>R code</span></nav>
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Reproducible implementation · R</p>
+        <h1>Copula Market-Risk Code</h1>
+        <p class="lead">A cleaned script that downloads and aligns the data, derives every displayed risk result, fits the asymmetric copula and reproduces the ARMA diagnostics.</p>
+        <div class="project-actions"><a class="button" href="../code/copula-market-risk.R" download>Download complete R script</a><a class="button secondary" href="copula-market-risk.html">Return to case study</a></div>
+      </header>
+
+      <div class="code-intro"><p>The portfolio version removes student identifiers and assignment scaffolding. It also fixes output-path portability and keeps modelling choices visible rather than hiding them behind a package pipeline.</p></div>
+
+      <section class="code-section" id="data">
+        <p class="section-number">01</p>
+        <h2>Align trading dates first</h2>
+        <p>Both adjusted-price series are merged by date before returns are used in a joint model.</p>
+<pre><code>prices &lt;- na.omit(merge(Ad(nvda), Ad(amd), join = "inner"))
+colnames(prices) &lt;- c("NVDA", "AMD")
+returns &lt;- na.omit(diff(log(prices)))
+
+X1 &lt;- as.numeric(returns[, "NVDA"])
+X2 &lt;- as.numeric(returns[, "AMD"])
+L1 &lt;- 1 - exp(X1)
+L2 &lt;- 1 - exp(X2)</code></pre>
+      </section>
+
+      <section class="code-section" id="risk">
+        <p class="section-number">02</p>
+        <h2>Define VaR and Expected Shortfall once</h2>
+<pre><code>risk_table &lt;- function(loss, model) {
+  value_at_risk &lt;- as.numeric(
+    quantile(loss, probs = alpha, type = 1, names = FALSE)
+  )
+  expected_shortfall &lt;- map_dbl(
+    value_at_risk,
+    ~ mean(loss[loss &gt;= .x])
+  )
+
+  tibble(
+    Model = model,
+    Alpha = alpha,
+    VaR = value_at_risk,
+    ES = expected_shortfall
+  )
+}</code></pre>
+      </section>
+
+      <section class="code-section" id="copulas">
+        <p class="section-number">03</p>
+        <h2>Change dependence, not the marginals</h2>
+        <p>Simulated uniforms are mapped through the same empirical return distributions, making the copula the only structural change.</p>
+<pre><code>inverse_ecdf &lt;- function(x, u) {
+  as.numeric(quantile(x, probs = u, type = 1, names = FALSE))
+}
+
+portfolio_loss &lt;- function(u1, u2) {
+  0.5 * (
+    1 - exp(inverse_ecdf(X1, u1)) +
+      1 - exp(inverse_ecdf(X2, u2))
+  )
+}
+
+z1 &lt;- rnorm(n_sim)
+z2 &lt;- rho_hat * z1 + sqrt(1 - rho_hat^2) * rnorm(n_sim)
+gaussian &lt;- list(U1 = pnorm(z1), U2 = pnorm(z2))
+gaussian$L &lt;- portfolio_loss(gaussian$U1, gaussian$U2)</code></pre>
+      </section>
+
+      <section class="code-section" id="selection">
+        <p class="section-number">04</p>
+        <h2>Fit asymmetric joint tails</h2>
+<pre><code>best_copula &lt;- BiCopSelect(
+  pseudo_observations(X1),
+  pseudo_observations(X2),
+  familyset = 3:10,
+  selectioncrit = "logLik",
+  indeptest = FALSE,
+  rotations = TRUE,
+  method = "mle"
+)
+
+selected_copula_summary &lt;- tibble(
+  Family = BiCopName(best_copula$family, short = FALSE),
+  Kendall_tau = best_copula$tau,
+  Lower_tail_dependence = best_copula$taildep$lower,
+  Upper_tail_dependence = best_copula$taildep$upper
+)</code></pre>
+      </section>
+
+      <section class="code-section" id="forecast">
+        <p class="section-number">05</p>
+        <h2>Forecast recursively without <code>forecast()</code></h2>
+        <p>Known historical values and residuals are used where available. Earlier forecasts replace unknown future returns, while future innovations are set to zero.</p>
+<pre><code>for (step in seq_len(horizon)) {
+  current &lt;- sample_size + step
+  ar_part &lt;- if (p &gt; 0) {
+    sum(phi * (values[current - seq_len(p)] - mu))
+  } else 0
+  ma_part &lt;- if (q &gt; 0) {
+    sum(theta * innovations[current - seq_len(q)])
+  } else 0
+  values[current] &lt;- mu + ar_part + ma_part
+}</code></pre>
+      </section>
+
+      <section class="code-section" id="checks">
+        <p class="section-number">06</p>
+        <h2>Reproduction checks</h2>
+        <div class="test-results">
+          <div><span>Data</span><strong>2,517 returns</strong><p>Paired daily observations reproduced.</p></div>
+          <div><span>Risk model</span><strong>t, ν = 10</strong><p>Lowest average VaR/ES error.</p></div>
+          <div><span>Selected family</span><strong>Survival BB1</strong><p>Lower-tail dependence reproduced at 0.527.</p></div>
+          <div><span>Residual tests</span><strong>p = 0.087 / 0.701</strong><p>No rejection at the 5% level.</p></div>
+        </div>
+        <div class="callout"><strong>Execution check</strong><p>The cleaned script ran successfully end-to-end against the stated Yahoo Finance sample and regenerated the displayed results and comparison chart.</p></div>
+      </section>
+    </article>
+    <footer class="article-footer"><a href="copula-market-risk.html">← Return to case study</a><a href="../code/copula-market-risk.R" download>Download full script →</a></footer>
+  </main>
+</body>
+</html>

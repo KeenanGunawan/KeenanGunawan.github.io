@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cleaned R code and model logic for Keenan Gunawan's bonus-malus scheme analysis.">
+  <title>R Code: Bonus-Malus Scheme Analysis | Keenan Gunawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Mono+4:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark" aria-hidden="true">KG</span>
+      <span><strong>Keenan Gunawan</strong><small>Actuarial &amp; Risk Analytics</small></span>
+    </a>
+    <label class="search">
+      <span class="sr-only">Search portfolio</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.3-4.3m2.3-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input type="search" placeholder="Search projects" data-site-search>
+    </label>
+    <nav class="side-nav">
+      <a href="../index.html" data-search-item="home introduction about keenan">Home</a>
+      <p class="nav-label">Projects</p>
+      <a href="mortgage-protection-pricing.html" data-search-item="mortgage protection insurance pricing life table makeham mortality profit testing multiple decrement python excel">Mortgage Protection Insurance Pricing</a>
+      <a href="mortality-risk-analysis.html" data-search-item="mortality survival cancer lifestyle private health insurance cox kaplan meier actuarial r">Mortality Risk &amp; Insurance Access</a>
+      <a class="active" href="bonus-malus-analysis.html" data-search-item="motor insurance bonus malus markov chain monte carlo loimaranta r pricing">Bonus-Malus Scheme Analysis</a>
+      <a href="copula-market-risk.html" data-search-item="copula market risk value at risk expected shortfall tail dependence arma arima nvda amd r">Copula Tail Risk &amp; ARMA Forecasting</a>
+      <a href="reverse-mortgage-modelling.html" data-search-item="reverse mortgage retirement excel vba monte carlo cir simulation">Reverse Mortgage Modelling</a>
+      <a href="airbnb-advanced-modelling.html" data-search-item="airbnb satisfaction classification price prediction xgboost random forest lasso r">Airbnb Satisfaction &amp; Price Prediction</a>
+      <a href="airbnb-price-modelling.html" data-search-item="airbnb melbourne price modelling regression gamma glm machine learning r">Airbnb Price Modelling</a>
+      <a href="election-polling.html" data-search-item="election polling demographics statistics r hypothesis testing">Election Polling Analysis</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="mailto:keenan.marvelian.gunawannn@gmail.com">Email</a>
+    </div>
+  </aside>
+
+  <aside class="page-toc" aria-label="On this page">
+    <h2>Code sections</h2>
+    <a href="#validation">Validation</a>
+    <a href="#transitions">Transitions</a>
+    <a href="#simulation">Simulation</a>
+    <a href="#stationary">Long-run profit</a>
+    <a href="#efficiency">Efficiency</a>
+  </aside>
+
+  <main class="main article-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="bonus-malus-analysis.html">Bonus-Malus Scheme Analysis</a><span>/</span><span>R code</span></nav>
+
+    <article>
+      <header class="article-header" id="overview">
+        <p class="eyebrow">Technical appendix · R</p>
+        <h1>Cleaned and audited analysis</h1>
+        <p class="lead">A reproducible version of the model with explicit data checks, age-specific assumptions and corrected premium structures.</p>
+        <div class="code-intro"><p>The source policy dataset is not published. Place an authorised copy at <code>data/AgeLevelData.csv</code>, or pass its path as the first command-line argument.</p></div>
+        <div class="code-toolbar">
+          <p>Base R · fixed seed · no specialist packages</p>
+          <a class="button primary" href="../code/bonus-malus-analysis.R" download>Download the .R file</a>
+        </div>
+      </header>
+
+      <section class="code-section" id="validation">
+        <p class="section-number">01</p>
+        <h2>Validate the policy data</h2>
+        <pre><code>required_columns &lt;- c("policynumber", "age", "ncdlevel25")
+missing_columns &lt;- setdiff(required_columns, names(policy))
+
+if (length(missing_columns) &gt; 0) {
+  stop("Missing required columns: ", paste(missing_columns, collapse = ", "))
+}
+
+if (anyNA(policy[required_columns])) stop("Required fields contain missing values.")
+if (anyDuplicated(policy$policynumber)) stop("Policy numbers must be unique.")
+if (!all(policy$ncdlevel25 %in% -1:3)) stop("Unexpected starting level.")</code></pre>
+      </section>
+
+      <section class="code-section" id="transitions">
+        <p class="section-number">02</p>
+        <h2>Build the transition matrix</h2>
+        <p>Zero claims moves a policy down one level, one claim moves it up one, and two-or-more claims moves it up two. Boundary states retain probability that would otherwise fall outside the scheme.</p>
+        <pre><code>build_transition_matrix &lt;- function(level_count, lambda) {
+  p_zero &lt;- exp(-lambda)
+  p_one &lt;- lambda * exp(-lambda)
+  p_two_plus &lt;- 1 - p_zero - p_one
+  transition &lt;- matrix(0, level_count, level_count)
+
+  for (state in seq_len(level_count)) {
+    transition[state, max(state - 1, 1)] &lt;-
+      transition[state, max(state - 1, 1)] + p_zero
+    transition[state, min(state + 1, level_count)] &lt;-
+      transition[state, min(state + 1, level_count)] + p_one
+    transition[state, min(state + 2, level_count)] &lt;-
+      transition[state, min(state + 2, level_count)] + p_two_plus
+  }
+
+  transition
+}</code></pre>
+      </section>
+
+      <section class="code-section" id="simulation">
+        <p class="section-number">03</p>
+        <h2>Simulate from actual starting levels</h2>
+        <p>The revised simulation keeps younger and older policyholders separate and starts each person from their observed level.</p>
+        <pre><code>simulate_group &lt;- function(starting_levels, lambda) {
+  claims &lt;- rpois(length(starting_levels), lambda)
+  movement &lt;- ifelse(claims == 0, -1, ifelse(claims == 1, 1, 2))
+  ending_levels &lt;- pmax(-1, pmin(3, starting_levels + movement))
+
+  list(
+    counts = tabulate(match(ending_levels, -1:3), nbins = 5),
+    claims = sum(claims)
+  )
+}</code></pre>
+      </section>
+
+      <section class="code-section" id="stationary">
+        <p class="section-number">04</p>
+        <h2>Solve the stationary distribution</h2>
+        <p>The stationary level mix solves πP = π with probabilities summing to one. Using a linear system avoids an additional package dependency.</p>
+        <pre><code>stationary_distribution &lt;- function(transition) {
+  level_count &lt;- nrow(transition)
+  system &lt;- t(transition) - diag(level_count)
+  system[level_count, ] &lt;- 1
+  target &lt;- c(rep(0, level_count - 1), 1)
+  as.numeric(solve(system, target))
+}</code></pre>
+      </section>
+
+      <section class="code-section" id="efficiency">
+        <p class="section-number">05</p>
+        <h2>Calculate Loimaranta efficiency</h2>
+        <p>The code evaluates long-run mean premium over a dense claim-frequency grid and applies the specified finite-difference approximation.</p>
+        <pre><code>loimaranta_efficiency &lt;- function(lambda_values, multipliers) {
+  premium &lt;- mean_premium(lambda_values, multipliers)
+  derivative &lt;- diff(premium) / diff(lambda_values)
+
+  efficiency &lt;- lambda_values[-length(lambda_values)] /
+    premium[-length(premium)] * derivative
+
+  c(efficiency, tail(efficiency, 1))
+}</code></pre>
+        <div class="interpretation"><span>Audit change</span><p>Each age group now uses its own claim frequency, and the seven-level young-driver multipliers match the scheme definition exactly. These controls materially changed the long-run comparison.</p></div>
+        <div class="code-toolbar">
+          <p>Complete simulation and comparison</p>
+          <a class="button secondary" href="../code/bonus-malus-analysis.R" download>Download full code</a>
+        </div>
+      </section>
+    </article>
+
+    <footer class="article-footer"><a href="bonus-malus-analysis.html">← Return to project walkthrough</a><a href="../code/bonus-malus-analysis.R" download>Download full code</a></footer>
+  </main>
+</body>
+</html>
